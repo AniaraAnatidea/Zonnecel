@@ -38,8 +38,11 @@ class DiodeExperiment:
         self.list_U_0 = []
         self.list_I_pv = []
         self.list_R = []
+        self.list_P = []
         self.list_U_err = []
         self.list_I_err = []
+        self.list_R_err = []
+        self.list_P_err = []
 
         # makes the measurments between the start and stop values
         for ADC_IN in range(start, stop):
@@ -50,14 +53,19 @@ class DiodeExperiment:
             U_1 = []
             U_2 = []
             R_n = []
+            P_n = []
             # takes [rep_num] number of measurments for the input and output values
             for n in range(rep_num):
                 U_n_1 = float(self.device.get_output_voltage(channel = 1))
                 U_1.append(U_n_1)
                 U_n_2 = float(self.device.get_output_voltage(channel = 2))
                 U_2.append(U_n_2)
+                P_n.append(U_n_1*U_n_2)
 
-                R_n.append(U_n_2/U_n_1)
+                try:
+                    R_n.append(U_n_1/(14.1*U_n_2))
+                except:
+                    R_n.append(99999)
             
 
             # gives average of repeated measurement of each inputvalues 
@@ -83,7 +91,10 @@ class DiodeExperiment:
 
             # resistance over photocell effectively same as resistance of transistor
             R = np.mean(R_n)
+            R_err = np.std(P_n)
 
+            P = np.mean(P_n)
+            P_err = np.std(P_n)
             # gives the expected error values for the given ADC_IN for the voltage input and output based of the measurments just taken
             # err_U_sqr = 0
             # err_I_sqr = 0
@@ -98,9 +109,11 @@ class DiodeExperiment:
             self.list_U_0.append(U_0)
             self.list_I_pv.append(I_pv)
             self.list_R.append(R)
+            self.list_P.append(P)
             self.list_U_err.append(U_err)
             self.list_I_err.append(I_err)
-
+            self.list_R_err.append(R_err)
+            self.list_P_err.append(P_err)
 
         # Turns the data into a dataframe and prints it
         dictionary = {"U pv": self.list_U_pv, "U ERR":self.list_U_err, "I pv": self.list_I_pv, "I ERR":self.list_I_err, "R":self.list_R}
@@ -110,7 +123,7 @@ class DiodeExperiment:
         # turns the light off after the measurments are done
         self.device.close()
 
-        return self.list_U_pv, self.list_U_0, self.list_I_pv, self.list_R, self.list_U_err, self.list_I_err
+        return self.list_U_pv, self.list_U_0, self.list_I_pv, self.list_R, self.list_P, self.list_U_err, self.list_I_err, self.list_R_err, self.list_P_err
 
     def start_scan(self, start, stop, rep_num):
         """Starts the scan as a thread

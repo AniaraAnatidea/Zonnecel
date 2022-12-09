@@ -86,7 +86,7 @@ class DiodeExperiment:
             #     err_U_sqr += ((U_IN[i] - U_OUT[i]) - (U_F_IN - U_F_OUT))**2/rep_num
             #     err_I_sqr += ((U_IN[i] - U_F_IN)/220)**2/rep_num
 
-            U_0 = float(self.device.get_output_voltage(channel = 0))
+            U_0 = ADC_IN *3.3 / 1023
 
             # The voltage, current and their errors are calculated and put into lists
             self.list_U_pv.append(U_pv)

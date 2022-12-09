@@ -2,7 +2,7 @@ import click
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from pythondaq.diode_experiment import DiodeExperiment
+from pythondaq.pv_experiment import DiodeExperiment
 from pythondaq.arduino_device import ArduinoVISADevice, list_devices
 from PySide6 import QtWidgets,QtCore
 from PySide6.QtCore import Slot
@@ -30,8 +30,12 @@ class UserInterface(QtWidgets.QMainWindow):
         pg.setConfigOption("background", "w")
         pg.setConfigOption("foreground", "k")
 
+        self.tab1_widget = QtWidgets.QTabWidget()
+        self.tab2_widget = QtWidgets.QTabWidget()
+
         # makes the plot widget
         self.plot_widget = pg.PlotWidget()
+        self.plot_R_V_widget = pg.PlotWidget()
 
         # makes the Min spinbox
         self.StartSpinBox = QtWidgets.QDoubleSpinBox()
@@ -85,7 +89,11 @@ class UserInterface(QtWidgets.QMainWindow):
         self.close_button = QtWidgets.QPushButton("Close")
         self.vbox.addWidget(self.close_button)
 
-        self.hbox.addWidget(self.plot_widget)
+        self.tab1_widget.addTab(self.plot_widget,"U_pv tegen I_pv")
+        self.tab1_widget.addTab(self.plot_R_V_widget,"U_0 tegen R")
+
+        self.hbox.addWidget(self.tab1_widget)
+        # self.hbox.widget(self.tab2_widget)
 
         self.hbox.addLayout(self.vbox)
 
@@ -112,24 +120,36 @@ class UserInterface(QtWidgets.QMainWindow):
             self.plot_widget.clear()
 
             self.plot_widget.plot(
-            x = self.experiment.U_LED, 
-            y = self.experiment.I_LED, 
+            x = self.experiment.list_U_pv, 
+            y = self.experiment.list_I_pv, 
+            symbol='o', color = "darkviolet",
+            pen=None)
+
+            self.plot_R_V_widget.clear()
+
+            self.plot_R_V_widget.plot(
+            x = self.experiment.list_U_0, 
+            y = self.experiment.list_R, 
             symbol=None, 
             pen={"color": "b", "width": 2})
+
+            
             
             # Plots the errorbars
             self.error =pg.ErrorBarItem()
             self.error.setData(
-                x = np.array(self.experiment.U_LED), y = np.array(self.experiment.I_LED),
-                left = np.array(self.experiment.U_err), right = np.array(self.experiment.U_err),
-                top = np.array(self.experiment.I_err), bottom = np.array(self.experiment.I_err)
+                x = np.array(self.experiment.list_U_pv), y = np.array(self.experiment.list_I_pv),
+                left = np.array(self.experiment.list_U_err), right = np.array(self.experiment.list_U_err),
+                top = np.array(self.experiment.list_I_err), bottom = np.array(self.experiment.list_I_err)
             )
             self.plot_widget.addItem(self.error)
 
             # Gives the axes
-            self.plot_widget.setLabel("bottom", "Voltage U(V)", color = "k")
-            self.plot_widget.setLabel("left", "Current I(A)", color = "k")
+            self.plot_widget.setLabel("bottom", "Voltage U_pv(V)", color = "k")
+            self.plot_widget.setLabel("left", "Current I_pv(A)", color = "k")
 
+            self.plot_R_V_widget.setLabel("bottom", "Voltage U_0(V)", color = "k")
+            self.plot_R_V_widget.setLabel("left", "Resistance R(Ohm)", color = "k")
 
     @Slot()
     def save(self):

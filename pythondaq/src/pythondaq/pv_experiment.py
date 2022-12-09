@@ -35,6 +35,7 @@ class DiodeExperiment:
             rep_num (integer): the amount of times that the measurment is repeated to ensure a better significance 
         """
         self.list_U_pv = []
+        self.list_U_0 = []
         self.list_I_pv = []
         self.list_R = []
         self.list_U_err = []
@@ -44,7 +45,7 @@ class DiodeExperiment:
         for ADC_IN in range(start, stop):
             # sets the output value as ADC_IN
             self.device.set_output_value(ADC_IN)
-
+            
             # makes two clean voltage-in and -out lists
             U_1 = []
             U_2 = []
@@ -78,8 +79,6 @@ class DiodeExperiment:
             # resistance over photocell effectively same as resistance of transistor
             R = U_pv / I_pv
 
-
-
             # gives the expected error values for the given ADC_IN for the voltage input and output based of the measurments just taken
             # err_U_sqr = 0
             # err_I_sqr = 0
@@ -87,10 +86,11 @@ class DiodeExperiment:
             #     err_U_sqr += ((U_IN[i] - U_OUT[i]) - (U_F_IN - U_F_OUT))**2/rep_num
             #     err_I_sqr += ((U_IN[i] - U_F_IN)/220)**2/rep_num
 
-
+            U_0 = float(self.device.get_output_voltage(channel = 0))
 
             # The voltage, current and their errors are calculated and put into lists
             self.list_U_pv.append(U_pv)
+            self.list_U_0.append(U_0)
             self.list_I_pv.append(I_pv)
             self.list_R.append(R)
             self.list_U_err.append(U_err)
@@ -105,7 +105,7 @@ class DiodeExperiment:
         # turns the light off after the measurments are done
         self.device.close()
 
-        return self.list_U_pv, self.list_I_pv, self.list_R, self.list_U_err, self.list_I_err
+        return self.list_U_pv, self.list_U_0, self.list_I_pv, self.list_R, self.list_U_err, self.list_I_err
 
     def start_scan(self, start, stop, rep_num):
         """Starts the scan as a thread

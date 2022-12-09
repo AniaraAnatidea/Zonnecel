@@ -20,8 +20,9 @@ class DiodeExperiment:
         print(self.device.get_identification())
         
         # sets up the lists for the measurments
-        self.U_LED = []
-        self.I_LED = []
+        self.U_pv = []
+        self.I_pv = []
+        self.R = []
         self.U_err = []
         self.I_err = []
 
@@ -33,10 +34,11 @@ class DiodeExperiment:
             stop (integer): Stops the measurment at this value in ADC
             rep_num (integer): the amount of times that the measurment is repeated to ensure a better significance 
         """
-        self.U_LED = []
-        self.I_LED = []
-        self.U_err = []
-        self.I_err = []
+        self.list_U_pv = []
+        self.list_I_pv = []
+        self.list_R = []
+        self.list_U_err = []
+        self.list_I_err = []
 
         # makes the measurments between the start and stop values
         for ADC_IN in range(start, stop):
@@ -44,46 +46,66 @@ class DiodeExperiment:
             self.device.set_output_value(ADC_IN)
 
             # makes two clean voltage-in and -out lists
-            U_IN = []
-            U_OUT = []
+            U_1 = []
+            U_2 = []
             
             # takes [rep_num] number of measurments for the input and output values
             for n in range(rep_num):
-                U_IN.append(float(self.device.get_output_voltage(channel = 1)))
-                U_OUT.append(float(self.device.get_output_voltage(channel = 2)))
+                U_1.append(float(self.device.get_output_voltage(channel = 1)))
+                U_2.append(float(self.device.get_output_voltage(channel = 2)))
             
+            # gives average of repeated measurement of each inputvalues 
+            U_1_avg = np.mean(U_1)
+            U_2_avg = np.mean(U_2)
+
             # gives a expected value for the given ADC_IN for the voltage input and output based of the measurments just taken
-            U_F_IN = 0
-            U_F_OUT = 0
-            for x in range(rep_num):
-                U_F_OUT += U_OUT[x]/rep_num
-                U_F_IN += U_IN[x]/rep_num 
+            # U_F_IN = 0
+            # U_F_OUT = 0
+            # for x in range(rep_num):
+            #     U_F_OUT += U_OUT[x]/rep_num
+            #     U_F_IN += U_IN[x]/rep_num 
             
+            # voltage on channel 1 (U_1) is a third of voltage over photocell
+            U_pv = 3 * U_1_avg
+            U_1_std =np.std(U_1)
+            U_err = 3 * U_1_std
+
+            # current over resistor of 4.7 Ohm with voltage of channel 2 (U_2)
+            I_pv = U_2_avg / 4.7
+            U_2_std = np.std(U_2)
+            I_err  = U_2_std / 4.7
+
+            # resistance over photocell effectively same as resistance of transistor
+            R = U_pv / I_pv
+
+
+
             # gives the expected error values for the given ADC_IN for the voltage input and output based of the measurments just taken
-            err_U_sqr = 0
-            err_I_sqr = 0
-            for i in range(rep_num):
-                err_U_sqr += ((U_IN[i] - U_OUT[i]) - (U_F_IN - U_F_OUT))**2/rep_num
-                err_I_sqr += ((U_IN[i] - U_F_IN)/220)**2/rep_num
+            # err_U_sqr = 0
+            # err_I_sqr = 0
+            # for i in range(rep_num):
+            #     err_U_sqr += ((U_IN[i] - U_OUT[i]) - (U_F_IN - U_F_OUT))**2/rep_num
+            #     err_I_sqr += ((U_IN[i] - U_F_IN)/220)**2/rep_num
 
 
 
             # The voltage, current and their errors are calculated and put into lists
-            self.U_LED.append(U_F_IN - U_F_OUT)
-            self.I_LED.append(U_F_OUT/220)
-            self.U_err.append(np.sqrt(err_U_sqr))
-            self.I_err.append(np.sqrt(err_I_sqr))
+            self.list_U_pv.append(U_pv)
+            self.list_I_pv.append(I_pv)
+            self.list_R.append(R)
+            self.list_U_err.append(U_err)
+            self.list_I_err.append(I_err)
 
 
         # Turns the data into a dataframe and prints it
-        dictionary = {"U LED": self.U_LED, "U ERR":self.U_err, "I LED": self.I_LED, "I ERR":self.I_err,}
+        dictionary = {"U pv": self.U_pv, "U ERR":self.U_err, "I pv": self.I_pv, "I ERR":self.I_err,}
         df = pd.DataFrame(dictionary)
         print(df)
-        # turns the light off after the measurments are done
 
+        # turns the light off after the measurments are done
         self.device.close()
 
-        return self.U_LED, self.I_LED, self.U_err, self.I_err
+        return self.list_U_pv, self.list_I_pv, self.list_R, self.list_U_err, self.list_I_err
 
     def start_scan(self, start, stop, rep_num):
         """Starts the scan as a thread

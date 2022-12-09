@@ -63,9 +63,9 @@ class DiodeExperiment:
                 P_n.append(U_n_1*U_n_2)
 
                 try:
-                    R_n.append(U_n_1/(14.1*U_n_2))
+                    R_n.append((U_n_1 * 14.1)/U_n_2)
                 except:
-                    R_n.append(99999)
+                    R_n.append(5000)
             
 
             # gives average of repeated measurement of each inputvalues 

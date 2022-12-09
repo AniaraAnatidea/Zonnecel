@@ -49,12 +49,17 @@ class DiodeExperiment:
             # makes two clean voltage-in and -out lists
             U_1 = []
             U_2 = []
-            
+            R_n = []
             # takes [rep_num] number of measurments for the input and output values
             for n in range(rep_num):
-                U_1.append(float(self.device.get_output_voltage(channel = 1)))
-                U_2.append(float(self.device.get_output_voltage(channel = 2)))
+                U_n_1 = float(self.device.get_output_voltage(channel = 1))
+                U_1.append(U_n_1)
+                U_n_2 = float(self.device.get_output_voltage(channel = 2))
+                U_2.append(U_n_2)
+
+                R_n.append(U_n_2/U_n_1)
             
+
             # gives average of repeated measurement of each inputvalues 
             U_1_avg = np.mean(U_1)
             U_2_avg = np.mean(U_2)
@@ -77,7 +82,7 @@ class DiodeExperiment:
             I_err  = U_2_std / 4.7
 
             # resistance over photocell effectively same as resistance of transistor
-            R = U_pv / I_pv
+            R = np.mean(R_n)
 
             # gives the expected error values for the given ADC_IN for the voltage input and output based of the measurments just taken
             # err_U_sqr = 0
@@ -98,7 +103,7 @@ class DiodeExperiment:
 
 
         # Turns the data into a dataframe and prints it
-        dictionary = {"U pv": self.U_pv, "U ERR":self.U_err, "I pv": self.I_pv, "I ERR":self.I_err,}
+        dictionary = {"U pv": self.list_U_pv, "U ERR":self.list_U_err, "I pv": self.list_I_pv, "I ERR":self.list_I_err, "R":self.list_R}
         df = pd.DataFrame(dictionary)
         print(df)
 

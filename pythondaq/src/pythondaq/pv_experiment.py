@@ -119,8 +119,8 @@ class DiodeExperiment:
 
         # Turns the data into a dataframe and prints it
         dictionary = {"U pv": self.list_U_pv, "U ERR":self.list_U_err, "I pv": self.list_I_pv, "I ERR":self.list_I_err, "R":self.list_R}
-        df = pd.DataFrame(dictionary)
-        print(df)
+        self.df = pd.DataFrame(dictionary)
+        print(self.df)
 
         # turns the light off after the measurments are done
         self.device.close()

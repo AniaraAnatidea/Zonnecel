@@ -1,6 +1,7 @@
 import click
 import sys
 import numpy as np
+import pandas as pd
 import time
 import matplotlib.pyplot as plt
 from pythondaq.pv_experiment import DiodeExperiment
@@ -67,6 +68,7 @@ class UserInterface(QtWidgets.QMainWindow):
         # sets the logo up
         self.logo_box = QtWidgets.QLabel()
         self.logo = QtGui.QPixmap("src/pythondaq/images/Logo.png",)
+        self.logo = self.logo.scaled(1000,50, QtCore.Qt.IgnoreAspectRatio,QtCore.Qt.FastTransformation )
         self.logo_box.setPixmap(self.logo)
         
 
@@ -214,22 +216,9 @@ class UserInterface(QtWidgets.QMainWindow):
     def save(self):
         """Saves the file
         """
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(filter="CSV files (*.csv)")
-
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(filter="CSV files (*.csv)", dir="src/pythondaq/Measurements")
+        self.experiment.df.to_csv(path_or_buf=f"{filename}")
         # saves a plot with the same name
-        if filename != "":
-            fig, ax = plt.subplots()
-            ax.errorbar(self.experiment.U_LED, self.experiment.I_LED,
-                xerr=self.experiment.U_err,
-                yerr=self.experiment.I_err,
-                fmt='-',
-                color='blue',
-                ecolor='black')
-
-            plt.xlabel("Voltage LED (V)")
-            plt.ylabel("Current LED (A)")
-
-            plt.savefig(f'{filename}.png')
 
     @Slot()
     def hold_max(self):

@@ -116,7 +116,13 @@ class DiodeExperiment:
                 self.list_I_err.append(I_err)
                 self.list_R_err.append(R_err)
                 self.list_P_err.append(P_err)
-
+        
+        # calculates fill factor from
+        P_max = max(self.list_P)
+        I_oc = self.list_I_pv[-1]
+        U_oc = self.list_U_pv[0]
+        P_tmax = I_oc * U_oc
+        self.FF = P_max / P_tmax
         # Turns the data into a dataframe and prints it
         dictionary = {"U pv": self.list_U_pv, "U ERR":self.list_U_err, "I pv": self.list_I_pv, "I ERR":self.list_I_err, "R":self.list_R}
         self.df = pd.DataFrame(dictionary)
@@ -125,7 +131,7 @@ class DiodeExperiment:
         # turns the light off after the measurments are done
         self.device.close()
 
-        return self.list_U_pv, self.list_U_0, self.list_I_pv, self.list_R, self.list_P, self.list_U_err, self.list_I_err, self.list_R_err, self.list_P_err
+        return self.list_U_pv, self.list_U_0, self.list_I_pv, self.list_R, self.list_P, self.list_U_err, self.list_I_err, self.list_R_err, self.list_P_err, self.FF
 
     def start_scan(self, start, stop, rep_num):
         """Starts the scan as a thread

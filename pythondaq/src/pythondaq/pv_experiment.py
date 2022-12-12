@@ -43,77 +43,79 @@ class DiodeExperiment:
         self.list_I_err = []
         self.list_R_err = []
         self.list_P_err = []
+        self.end_meas = None
 
         # makes the measurments between the start and stop values
         for ADC_IN in range(start, stop):
-            # sets the output value as ADC_IN
-            self.device.set_output_value(ADC_IN)
-            
-            # makes two clean voltage-in and -out lists
-            U_1 = []
-            U_2 = []
-            R_n = []
-            P_n = []
-            # takes [rep_num] number of measurments for the input and output values
-            for n in range(rep_num):
-                U_n_1 = float(self.device.get_output_voltage(channel = 1))
-                U_1.append(U_n_1)
-                U_n_2 = float(self.device.get_output_voltage(channel = 2))
-                U_2.append(U_n_2)
-                P_n.append(U_n_1*U_n_2)
+            if self.end_meas == None:
+                # sets the output value as ADC_IN
+                self.device.set_output_value(ADC_IN)
+                
+                # makes two clean voltage-in and -out lists
+                U_1 = []
+                U_2 = []
+                R_n = []
+                P_n = []
+                # takes [rep_num] number of measurments for the input and output values
+                for n in range(rep_num):
+                    U_n_1 = float(self.device.get_output_voltage(channel = 1))
+                    U_1.append(U_n_1)
+                    U_n_2 = float(self.device.get_output_voltage(channel = 2))
+                    U_2.append(U_n_2)
+                    P_n.append(U_n_1*U_n_2)
 
-                try:
-                    R_n.append((U_n_1 * 14.1)/U_n_2)
-                except:
-                    R_n.append(5000)
-            
+                    try:
+                        R_n.append((U_n_1 * 14.1)/U_n_2)
+                    except:
+                        R_n.append(5000)
+                
 
-            # gives average of repeated measurement of each inputvalues 
-            U_1_avg = np.mean(U_1)
-            U_2_avg = np.mean(U_2)
+                # gives average of repeated measurement of each inputvalues 
+                U_1_avg = np.mean(U_1)
+                U_2_avg = np.mean(U_2)
 
-            # gives a expected value for the given ADC_IN for the voltage input and output based of the measurments just taken
-            # U_F_IN = 0
-            # U_F_OUT = 0
-            # for x in range(rep_num):
-            #     U_F_OUT += U_OUT[x]/rep_num
-            #     U_F_IN += U_IN[x]/rep_num 
-            
-            # voltage on channel 1 (U_1) is a third of voltage over photocell
-            U_pv = 3 * U_1_avg
-            U_1_std =np.std(U_1)
-            U_err = 3 * U_1_std
+                # gives a expected value for the given ADC_IN for the voltage input and output based of the measurments just taken
+                # U_F_IN = 0
+                # U_F_OUT = 0
+                # for x in range(rep_num):
+                #     U_F_OUT += U_OUT[x]/rep_num
+                #     U_F_IN += U_IN[x]/rep_num 
+                
+                # voltage on channel 1 (U_1) is a third of voltage over photocell
+                U_pv = 3 * U_1_avg
+                U_1_std =np.std(U_1)
+                U_err = 3 * U_1_std
 
-            # current over resistor of 4.7 Ohm with voltage of channel 2 (U_2)
-            I_pv = U_2_avg / 4.7
-            U_2_std = np.std(U_2)
-            I_err  = U_2_std / 4.7
+                # current over resistor of 4.7 Ohm with voltage of channel 2 (U_2)
+                I_pv = U_2_avg / 4.7
+                U_2_std = np.std(U_2)
+                I_err  = U_2_std / 4.7
 
-            # resistance over photocell effectively same as resistance of transistor
-            R = np.mean(R_n)
-            R_err = np.std(P_n)
+                # resistance over photocell effectively same as resistance of transistor
+                R = np.mean(R_n)
+                R_err = np.std(P_n)
 
-            P = np.mean(P_n)
-            P_err = np.std(P_n)
-            # gives the expected error values for the given ADC_IN for the voltage input and output based of the measurments just taken
-            # err_U_sqr = 0
-            # err_I_sqr = 0
-            # for i in range(rep_num):
-            #     err_U_sqr += ((U_IN[i] - U_OUT[i]) - (U_F_IN - U_F_OUT))**2/rep_num
-            #     err_I_sqr += ((U_IN[i] - U_F_IN)/220)**2/rep_num
+                P = np.mean(P_n)
+                P_err = np.std(P_n)
+                # gives the expected error values for the given ADC_IN for the voltage input and output based of the measurments just taken
+                # err_U_sqr = 0
+                # err_I_sqr = 0
+                # for i in range(rep_num):
+                #     err_U_sqr += ((U_IN[i] - U_OUT[i]) - (U_F_IN - U_F_OUT))**2/rep_num
+                #     err_I_sqr += ((U_IN[i] - U_F_IN)/220)**2/rep_num
 
-            U_0 = ADC_IN *3.3 / 1023
+                U_0 = ADC_IN *3.3 / 1023
 
-            # The voltage, current and their errors are calculated and put into lists
-            self.list_U_pv.append(U_pv)
-            self.list_U_0.append(U_0)
-            self.list_I_pv.append(I_pv)
-            self.list_R.append(R)
-            self.list_P.append(P)
-            self.list_U_err.append(U_err)
-            self.list_I_err.append(I_err)
-            self.list_R_err.append(R_err)
-            self.list_P_err.append(P_err)
+                # The voltage, current and their errors are calculated and put into lists
+                self.list_U_pv.append(U_pv)
+                self.list_U_0.append(U_0)
+                self.list_I_pv.append(I_pv)
+                self.list_R.append(R)
+                self.list_P.append(P)
+                self.list_U_err.append(U_err)
+                self.list_I_err.append(I_err)
+                self.list_R_err.append(R_err)
+                self.list_P_err.append(P_err)
 
         # Turns the data into a dataframe and prints it
         dictionary = {"U pv": self.list_U_pv, "U ERR":self.list_U_err, "I pv": self.list_I_pv, "I ERR":self.list_I_err, "R":self.list_R}
